@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const Layout = ({ children }) => {
   // Sidebar items with sub-items
@@ -13,21 +14,21 @@ const Layout = ({ children }) => {
     {
       icon: "user",
       title: "Profile",
-      slug: "/profile",
+      slug: "/dashboard/profile",
     },
     {
       icon: "settings",
       title: "Settings",
-      slug: "/settings",
+      slug: "/dashboard/settings",
       subItems: [
         {
           title: "Users",
-          slug: "/settings/users",
+          slug: "/dashboard/settings/users",
           icon: "users",
         },
         {
           title: "Roles",
-          slug: "/settings/roles",
+          slug: "/dashboard/settings/roles",
           icon: "shield-alt",
         },
       ],
@@ -39,12 +40,12 @@ const Layout = ({ children }) => {
       subItems: [
         {
           title: "Users",
-          slug: "/settings/users",
+          slug: "/dashboard/settings/users",
           icon: "users",
         },
         {
           title: "Roles",
-          slug: "/settings/roles",
+          slug: "/dashboard/settings/roles",
           icon: "shield-alt",
         },
       ],
@@ -63,6 +64,8 @@ const Layout = ({ children }) => {
 
   // State for open dropdown and sidebar
   const [openDropdown, setOpenDropdown] = useState(null);
+  const pathname = usePathname();
+
   const [isSidebarOpen, setSidebarOpen] = useState(
     window.innerWidth <= 768 ? false : true
   );
@@ -77,7 +80,13 @@ const Layout = ({ children }) => {
     setSidebarOpen(!isSidebarOpen);
   };
 
-
+  const getParentSlug = (slug) => {
+    const parts = slug.split("/");
+    if (parts.length === 4) {
+      parts.pop();
+    }
+    return parts.join("/");
+  };
 
   return (
     <div>
@@ -103,36 +112,67 @@ const Layout = ({ children }) => {
         <div className="pt-8">
           <ul>
             {sidebarItems.map((item) => (
-              <li key={item.slug}>
-                <Link href={item.slug} className="flex items-center px-4 py-2.5 rounded hover:text-white hover:bg-[#000]">
-                 
-                    <div
-                      className="flex items-center w-full"
-                      onClick={
-                        item.subItems
-                          ? (e) => {
-                              e.preventDefault();
-                              toggleDropdown(item.slug);
-                            }
-                          : null
+              <li
+                key={item.slug}
+                className="mt-[3px]"
+                onClick={
+                  item.subItems
+                    ? (e) => {
+                        e.preventDefault();
+                        toggleDropdown(item.slug);
                       }
-                    >
+                    : (e) => {
+                        e.preventDefault();
+                        toggleDropdown(item.slug);
+                      }
+                }
+              >
+                {!item.subItems ? (
+                  <Link
+                    href={item.slug}
+                    className={` flex items-center px-4 py-2.5 rounded hover:text-white hover:bg-[#000] ${
+                      getParentSlug(pathname) === item.slug
+                        ? "text-white bg-[#000]"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-center w-full">
                       <span
                         className={`icon-${item.icon}`}
                         style={{ marginRight: "10px" }}
                       ></span>
                       <h5>{item.title}</h5>
                     </div>
-                  
-                </Link>
+                  </Link>
+                ) : (
+                  <button
+                    className={` w-full flex items-center px-4 py-2.5 rounded hover:text-white hover:bg-[#000] ${
+                      getParentSlug(pathname) === item.slug
+                        ? "text-white bg-[#000]"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-center w-full">
+                      <span
+                        className={`icon-${item.icon}`}
+                        style={{ marginRight: "10px" }}
+                      ></span>
+                      <h5>{item.title}</h5>
+                    </div>
+                  </button>
+                )}
 
                 {/* Dropdown for items with subItems */}
                 {item.subItems && openDropdown === item.slug && (
-                  <ol className="">
+                  <ol className="bg-gray-50 p-2  border">
                     {item.subItems.map((subItem) => (
                       <li
                         key={subItem.slug}
-                        className="px-4 py-2.5 rounded hover:text-white hover:bg-[#000000bd]"
+                        className={`px-4 py-2.5 mt-[2px] rounded hover:text-white hover:bg-[#000000bd]  ${
+                          pathname === subItem.slug
+                            ? "text-white bg-[#000000bd]"
+                            : ""
+                        }`}
                       >
                         <Link href={subItem.slug}>
                           <div>
